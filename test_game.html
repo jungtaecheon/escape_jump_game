@@ -138,32 +138,35 @@
                 //障害物のアニメ
                 var rocket = this.rocket;
                 var rocket2 = this.rocket2;
-                var randNum = Math.floor(Math.random() * 9);
+                var randNum1 = Math.floor(Math.random() * 9);
+                var randNum2 = Math.floor(Math.random() * 9);
                 if (ROCKET_DIE == false) {
                     if (SCORE % 300 == 0 && SCORE > 0) {
                         rocket2GOFlug = true;
                     }
                     if (rocket2GOFlug) {
-                        rocket2.x -= 5;
-                    }
-                    if (rocket2.x < 0) {
-                        rocket2GOFlug = false;
-                        rocket2.x = SCREEN_WIDTH - 30;
-                    }
+                        rocket2.x -= randNum2 + 5;
+                        if (rocket2.x < 0) {
+                            rocket2GOFlug = false;
+                            rocket2.x = SCREEN_WIDTH - 30;
+                            SCORE += 100;
+                            this.scoreLabel.text = 'SCORE:' + SCORE;
+                        }
 
+                    }
                     rocket.rotation -= ROCKET_ATACK;
                     rocket.x -= ROCKET_ATACK;
                     if (rocket.x < 0) {
                         rocket.x = SCREEN_WIDTH + 100;
                         SCORE += 100;
-                        ROCKET_ATACK = randNum + 5;
+                        ROCKET_ATACK = randNum1 + 5;
                         this.scoreLabel.text = 'SCORE:' + SCORE;
                     }
                 } else {
                     rocket.rotation = 0;
-                    rocket.x += ROCKET_ATACK;
-                    rocket.y -= ROCKET_ATACK;
-                    rocket2.x += ROCKET_ATACK;
+                    rocket.x -= 3;
+                    rocket.y -= 10;
+                    rocket2.x += 5;
                     if (rocket.y < -0 && rocket2.x > SCREEN_WIDTH) {
                         this.exit({
                             score: SCORE,
