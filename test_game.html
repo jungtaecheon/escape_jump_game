@@ -34,8 +34,8 @@
         // 定数
         var SCREEN_WIDTH = 465; // スクリーン幅
         var SCREEN_HEIGHT = 465; // スクリーン高さ
-        var JUMP_POWOR = 11; // ジャンプ力
-        var GRAVITY = 0.5; // 重力
+        var JUMP_POWOR = 15; // ジャンプ力
+        var GRAVITY = 0.6; // 重力
         var JUMP_FLG = false; // ジャンプ中かどうか
         var SECOND_JUMP_FLG = false; // ２回めのジャンプ中か
         var ROCKET_ATACK = 5; //卵の移動速度
@@ -139,7 +139,7 @@
                 var rocket = this.rocket;
                 var rocket2 = this.rocket2;
                 var randNum1 = Math.floor(Math.random() * 9);
-                var randNum2 = Math.floor(Math.random() * 9);
+                var randNum2 = Math.floor(Math.random() * 7);
                 if (ROCKET_DIE == false) {
                     if (SCORE % 300 == 0 && SCORE > 0) {
                         rocket2GOFlug = true;
@@ -183,7 +183,7 @@
 
                 // 判定用の円
                 var c1 = Circle(player.x, player.y, HIT_RADIUS);
-                var c2 = Circle(rocket.x, rocket.y, HIT_RADIUS + 20);
+                var c2 = Circle(rocket.x, rocket.y, HIT_RADIUS + 10);
                 var r3 = Circle(rocket2.x, rocket2.y, HIT_RADIUS);
 
                 // 円判定
