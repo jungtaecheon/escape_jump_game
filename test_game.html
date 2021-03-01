@@ -73,7 +73,7 @@
                 this.bg2.setPosition(SCREEN_WIDTH, 0);
 
                 //スコア表示
-                this.scoreLabel = Label('SCORE:' + SCORE).addChildTo(this);
+                this.scoreLabel = Label('SCORE:' + SCORE + '\n\nClick!! => Jump').addChildTo(this);
                 this.scoreLabel.x = this.gridX.center();
                 this.scoreLabel.y = this.gridY.span(4);
                 this.scoreLabel.fill = 'black';
@@ -230,7 +230,7 @@
         phina.main(function() {
             // アプリケーションを生成
             var app = GameApp({
-                title: 'Avoid S.H.\n2 Jump OK!',
+                title: 'Avoid L.S.H.',
                 startLabel: 'title', // TitleScene から開始
                 width: SCREEN_WIDTH, // 画面幅
                 height: SCREEN_HEIGHT, // 画面高さ
