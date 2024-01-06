@@ -1,248 +1,265 @@
-<!doctype html>
+<!DOCTYPE html>
 
 <html>
-
-<head>
-    <meta charset='utf-8' />
+  <head>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
 
-    <title>Getting started | phina.js</title>
+    <title>ジャンプゲーム | phina.js</title>
     <!-- phina.js を読み込む -->
-    <script src='https://cdn.rawgit.com/phi-jp/phina.js/v0.2.0/build/phina.js'></script>
+    <script src="https://cdn.rawgit.com/phi-jp/phina.js/v0.2.0/build/phina.js"></script>
 
     <!-- メイン処理 -->
     <script>
-        // phina.js をグローバル領域に展開
-        phina.globalize();
+      // phina.js をグローバル領域に展開
+      phina.globalize();
 
-        // ファイル読み込み
-        var ASSETS = {
-            //画像
-            image: {
-                bg: 'img/bg.png',
-                bg2: 'img/bg.png',
-                rocket: 'img/rocket_2.png',
-                rocket2: 'img/rocket_3.png',
-                tomapiko: 'https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png'
-            },
-            //フレームアニメーション情報
-            spritesheet: {
-                'tomapiko_ss': 'https://rawgit.com/phi-jp/phina.js/develop/assets/tmss/tomapiko.tmss',
-            },
-        };
-        // 定数
-        var SCREEN_WIDTH = 465; // スクリーン幅
-        var SCREEN_HEIGHT = 465; // スクリーン高さ
-        var JUMP_POWOR = 15; // ジャンプ力
-        var GRAVITY = 0.6; // 重力
-        var JUMP_FLG = false; // ジャンプ中かどうか
-        var SECOND_JUMP_FLG = false; // ２回めのジャンプ中か
-        var ROCKET_ATACK = 5; //卵の移動速度
-        var ROCKET_DIE = false; //卵が割れてるかどうか
-        var HIT_RADIUS = 30; // 当たり判定用の半径
-        var SCORE = 0; // スコア
+      // ファイル読み込み
+      var ASSETS = {
+        //画像
+        image: {
+          bg: "img/bg.png",
+          bg2: "img/bg.png",
+          rocket: "img/rocket_1.png",
+          rocket2: "img/rocket_2.png",
+          tomapiko:
+            "https://rawgit.com/phi-jp/phina.js/develop/assets/images/tomapiko_ss.png",
+        },
+        //フレームアニメーション情報
+        spritesheet: {
+          tomapiko_ss:
+            "https://rawgit.com/phi-jp/phina.js/develop/assets/tmss/tomapiko.tmss",
+        },
+      };
+      // 定数
+      var SCREEN_WIDTH = 465; // スクリーン幅
+      var SCREEN_HEIGHT = 465; // スクリーン高さ
+      var JUMP_POWER = 15; // ジャンプ力
+      var GRAVITY = 0.8; // 重力
+      var JUMP_FLG = false; // ジャンプ中かどうか
+      var SECOND_JUMP_FLG = false; // ２回めのジャンプ中か
+      var ROCKET_ATTACK = 5; //卵の移動速度
+      var ROCKET_DIE = false; //卵が割れてるかどうか
+      var HIT_RADIUS = 30; // 当たり判定用の半径
+      var SCORE = 0; // スコア
 
-        var rocket2GOFlug = false;
+      var rocket2GOFlug = false;
 
-        /*
-         * メインシーン
-         */
-        phina.define("MainScene", {
-            // 継承
-            superClass: 'DisplayScene',
+      /*
+       * メインシーン
+       */
+      phina.define("MainScene", {
+        // 継承
+        superClass: "DisplayScene",
 
-            // 初期化
-            init: function(options) {
-                // super init
-                this.superInit(options);
+        // 初期化
+        init: function (options) {
+          // super init
+          this.superInit(options);
 
-                //1回目の初期化
-                SCORE = 0;
-                ROCKET_ATACK = 5;
-                ROCKET_DIE = false;
-                JUMP_FLG = false;
-                rocket2GOFlug = false;
+          this.gameStarted = false;
 
-                // 背景
-                this.bg = Sprite("bg").addChildTo(this);
-                this.bg.origin.set(0, 0); // 左上基準に変更
-                // ループ用の背景
-                this.bg2 = Sprite("bg2").addChildTo(this);
-                this.bg2.origin.set(0, 0); // 左上基準に変更
-                this.bg2.setPosition(SCREEN_WIDTH, 0);
+          //1回目の初期化
+          SCORE = 0;
+          ROCKET_ATTACK = 5;
+          ROCKET_DIE = false;
+          JUMP_FLG = false;
+          rocket2GOFlug = false;
 
-                //スコア表示
-                this.scoreLabel = Label('SCORE:' + SCORE + '\n\nClick!! => Jump').addChildTo(this);
-                this.scoreLabel.x = this.gridX.center();
-                this.scoreLabel.y = this.gridY.span(4);
-                this.scoreLabel.fill = 'black';
+          // 背景
+          this.bg = Sprite("bg").addChildTo(this);
+          this.bg.origin.set(0, 0); // 左上基準に変更
+          // ループ用の背景
+          this.bg2 = Sprite("bg2").addChildTo(this);
+          this.bg2.origin.set(0, 0); // 左上基準に変更
+          this.bg2.setPosition(SCREEN_WIDTH, 0);
 
-                // 障害物（1）
-                this.rocket = Sprite('rocket', 180, 135).addChildTo(this);
-                this.rocket.setPosition(SCREEN_WIDTH, 375);
-                this.rocket.frameIndex = 0;
-                // 障害物（2）
-                this.rocket2 = Sprite('rocket2', 141, 180).addChildTo(this);
-                this.rocket2.setPosition(SCREEN_WIDTH - 30, 375);
-                this.rocket2.frameIndex = 0;
+          //スコア表示
+          this.scoreLabel = Label(
+            "SCORE:" +
+              SCORE +
+              "\n\nクリック => ジャンプ\nダブルクリック => ２段ジャンプ"
+          ).addChildTo(this);
+          this.scoreLabel.x = this.gridX.center();
+          this.scoreLabel.y = this.gridY.span(4);
+          this.scoreLabel.fill = "black";
+          this.scoreLabel.fontSize = 24;
 
+          // 障害物（1）モンスターボール
+          this.rocket = Sprite("rocket").addChildTo(this);
+          this.rocket.setPosition(SCREEN_WIDTH - 90, SCREEN_HEIGHT - 90);
+          this.rocket.setScale(2.5, 2.5);
+          // 障害物（2）モンスター
+          this.rocket2 = Sprite("rocket2").addChildTo(this);
+          this.rocket2.setPosition(SCREEN_WIDTH - 10, SCREEN_HEIGHT - 130);
+          this.rocket2.setScale(2.5, 2.5);
 
-                // プレイヤー
-                var player = Player('tomapiko').addChildTo(this);
-                player.setPosition(100, 365);
-                this.player = player;
+          // プレイヤー
+          var player = Player("tomapiko").addChildTo(this);
+          player.setPosition(100, 365);
+          this.player = player;
 
-                // 画面タッチ時処理
-                this.onpointend = function() {
-                    // ダブルジャンプの条件
-                    if (JUMP_FLG == true && SECOND_JUMP_FLG == false) {
-                        SECOND_JUMP_FLG = true;
-                        player.anim.gotoAndPlay('fly');
-                        player.physical.velocity.y = -JUMP_POWOR;
-                        player.physical.gravity.y = GRAVITY;
-                    }
-
-                    if (JUMP_FLG == false) {
-                        JUMP_FLG = true;
-                        player.anim.gotoAndPlay('fly');
-                        player.scaleX *= -1;
-                        player.physical.velocity.y = -JUMP_POWOR;
-                        player.physical.gravity.y = GRAVITY;
-                    }
-                }
-            },
-
-            // 更新
-            update: function(app) {
-                //背景画像の移動
-                this.bg.x -= 1;
-                this.bg2.x -= 1;
-                if (this.bg.x <= -SCREEN_WIDTH) {
-                    this.bg.x = 0;
-                    this.bg2.x = SCREEN_WIDTH;
-                }
-
-                //プレイヤーのアニメーション
-                var player = this.player;
-                if (player.y > 375) { //地面に着地時
-                    player.y = 365;
-                    JUMP_FLG = false;
-                    SECOND_JUMP_FLG = false;
-                    player.anim.gotoAndPlay('right');
-                    player.scaleX *= -1;
-                    player.physical.velocity.y = 0;
-                    player.physical.gravity.y = 0;
-                }
-
-                //障害物のアニメ
-                var rocket = this.rocket;
-                var rocket2 = this.rocket2;
-                var randNum1 = Math.floor(Math.random() * 9);
-                var randNum2 = Math.floor(Math.random() * 7);
-                if (ROCKET_DIE == false) {
-                    if (SCORE % 300 == 0 && SCORE > 0) {
-                        rocket2GOFlug = true;
-                    }
-                    if (rocket2GOFlug) {
-                        rocket2.x -= randNum2 + 5;
-                        if (rocket2.x < 0) {
-                            rocket2GOFlug = false;
-                            rocket2.x = SCREEN_WIDTH - 30;
-                            SCORE += 100;
-                            this.scoreLabel.text = 'SCORE:' + SCORE;
-                        }
-
-                    }
-                    rocket.rotation -= ROCKET_ATACK;
-                    rocket.x -= ROCKET_ATACK;
-                    if (rocket.x < 0) {
-                        rocket.x = SCREEN_WIDTH + 100;
-                        SCORE += 100;
-                        ROCKET_ATACK = randNum1 + 5;
-                        this.scoreLabel.text = 'SCORE:' + SCORE;
-                    }
-                } else {
-                    rocket.rotation = 0;
-                    rocket.x -= 3;
-                    rocket.y -= 10;
-                    rocket2.x += 5;
-                    if (rocket.y < -0 && rocket2.x > SCREEN_WIDTH) {
-                        this.exit({
-                            score: SCORE,
-                        });
-                    }
-                }
-                // 卵とプレイヤーの辺り判定
-                this.hitTestEnemyPlayer();
-            },
-            hitTestEnemyPlayer: function() {
-                var player = this.player;
-                var rocket = this.rocket;
-                var rocket2 = this.rocket2;
-
-                // 判定用の円
-                var c1 = Circle(player.x, player.y, HIT_RADIUS);
-                var c2 = Circle(rocket.x, rocket.y, HIT_RADIUS + 10);
-                var r3 = Circle(rocket2.x, rocket2.y, HIT_RADIUS);
-
-                // 円判定
-                if (Collision.testCircleCircle(c1, c2)) {
-                    ROCKET_DIE = true;
-                    rocket.frameIndex = 1;
-                    rocket.scaleY = rocket.scaleX = 1.1;
-                    player.y = rocket.y - 30;
-                    player.x = rocket.x - 30;
-                    player.anim.gotoAndPlay('damage');
-                }
-                // 円判定
-                if (Collision.testCircleCircle(c1, r3)) {
-                    ROCKET_DIE = true;
-                    rocket2.frameIndex = 1;
-                    rocket2.scaleY = rocket2.scaleX = 1.1;
-                    player.x = rocket2.x + 30;
-                    player.anim.gotoAndPlay('damage');
-                }
+          // 画面タッチ時処理
+          this.onpointend = function () {
+            // ダブルジャンプの条件
+            if (
+              JUMP_FLG == true &&
+              SECOND_JUMP_FLG == false &&
+              this.gameStarted
+            ) {
+              SECOND_JUMP_FLG = true;
+              player.anim.gotoAndPlay("fly");
+              player.physical.velocity.y = -JUMP_POWER;
+              player.physical.gravity.y = GRAVITY;
             }
+
+            if (JUMP_FLG == false && this.gameStarted) {
+              JUMP_FLG = true;
+              player.anim.gotoAndPlay("fly");
+              player.scaleX *= -1;
+              player.physical.velocity.y = -JUMP_POWER;
+              player.physical.gravity.y = GRAVITY;
+            }
+
+            this.gameStarted = true;
+          };
+        },
+
+        // 更新
+        update: function (app) {
+          if (this.gameStarted) {
+            //背景画像の移動
+            this.bg.x -= 1;
+            this.bg2.x -= 1;
+            if (this.bg.x <= -SCREEN_WIDTH) {
+              this.bg.x = 0;
+              this.bg2.x = SCREEN_WIDTH;
+            }
+
+            //プレイヤーのアニメーション
+            var player = this.player;
+            if (player.y > 375) {
+              //地面に着地時
+              player.y = 365;
+              JUMP_FLG = false;
+              SECOND_JUMP_FLG = false;
+              player.anim.gotoAndPlay("right");
+              player.scaleX *= -1;
+              player.physical.velocity.y = 0;
+              player.physical.gravity.y = 0;
+            }
+
+            //障害物のアニメ
+            var rocket = this.rocket;
+            var rocket2 = this.rocket2;
+            var randNum1 = Math.floor(Math.random() * 9);
+            var randNum2 = Math.floor(Math.random() * 7);
+            if (ROCKET_DIE == false) {
+              if (SCORE % 300 == 0 && SCORE > 0) {
+                rocket2GOFlug = true;
+              }
+              if (rocket2GOFlug) {
+                rocket2.x -= randNum2 + 5;
+                if (rocket2.x < 0) {
+                  rocket2GOFlug = false;
+                  rocket2.x = SCREEN_WIDTH - 30;
+                  SCORE += 100;
+                  this.scoreLabel.text = "SCORE:" + SCORE;
+                }
+              }
+              rocket.rotation -= ROCKET_ATTACK;
+              rocket.x -= ROCKET_ATTACK;
+              if (rocket.x < 0) {
+                rocket.x = SCREEN_WIDTH + 100;
+                SCORE += 100;
+                ROCKET_ATTACK = randNum1 + 5;
+                this.scoreLabel.text = "SCORE:" + SCORE;
+              }
+            } else {
+              rocket.rotation = 0;
+              rocket.x -= 3;
+              rocket.y -= 10;
+              rocket2.x += 5;
+              if (rocket.y < -0 && rocket2.x > SCREEN_WIDTH) {
+                this.exit({
+                  score: SCORE,
+                });
+              }
+            }
+            // 卵とプレイヤーの辺り判定
+            this.hitTestEnemyPlayer();
+          }
+        },
+        hitTestEnemyPlayer: function () {
+          var player = this.player;
+          var rocket = this.rocket;
+          var rocket2 = this.rocket2;
+
+          var playerHitRadius = (player.width + player.height) / 4; // プレイヤーの半径
+          var rocketHitRadius = (rocket.width + rocket.height) / 4; // 障害物1の半径
+          var rocket2HitRadius = (rocket2.width + rocket2.height) / 4; // 障害物2の半径
+
+          // 判定用の円
+          var c1 = Circle(player.x, player.y, playerHitRadius);
+          var c2 = Circle(rocket.x, rocket.y, rocketHitRadius);
+          var r3 = Circle(rocket2.x, rocket2.y, rocket2HitRadius);
+
+          // 円判定
+          if (Collision.testCircleCircle(c1, c2)) {
+            ROCKET_DIE = true;
+            // rocket.scaleY = rocket.scaleX = 1.1;
+            player.y = rocket.y - 30;
+            player.x = rocket.x - 30;
+            player.anim.gotoAndPlay("damage");
+          }
+          // 円判定
+          if (Collision.testCircleCircle(c1, r3)) {
+            ROCKET_DIE = true;
+            // rocket2.scaleY = rocket2.scaleX = 1.1;
+            player.x = rocket2.x + 30;
+            player.anim.gotoAndPlay("damage");
+          }
+        },
+      });
+
+      /*
+       * プレイヤークラス
+       */
+      phina.define("Player", {
+        superClass: "Sprite",
+        // コンストラクタ
+        init: function (image) {
+          // 親クラス初期化
+          this.superInit(image);
+          // フレームアニメーションをアタッチ
+          this.anim = FrameAnimation("tomapiko_ss").attachTo(this);
+          // 初期アニメーション指定
+          this.anim.gotoAndPlay("right");
+        },
+        // 毎フレーム処理
+        update: function () {},
+      });
+
+      /*
+       * メイン処理
+       */
+      phina.main(function () {
+        // アプリケーションを生成
+        var app = GameApp({
+          title: "モンスターを\nよけろ！",
+          startLabel: "title", // TitleScene から開始
+          width: SCREEN_WIDTH, // 画面幅
+          height: SCREEN_HEIGHT, // 画面高さ
+          assets: ASSETS, // アセット読み込み
         });
 
-        /*
-         * プレイヤークラス
-         */
-        phina.define('Player', {
-            superClass: 'Sprite',
-            // コンストラクタ
-            init: function(image) {
-                // 親クラス初期化
-                this.superInit(image);
-                // フレームアニメーションをアタッチ
-                this.anim = FrameAnimation('tomapiko_ss').attachTo(this);
-                // 初期アニメーション指定
-                this.anim.gotoAndPlay('right');
-            },
-            // 毎フレーム処理
-            update: function() {},
-        });
-
-        /*
-         * メイン処理
-         */
-        phina.main(function() {
-            // アプリケーションを生成
-            var app = GameApp({
-                title: 'Avoid L.S.H.',
-                startLabel: 'title', // TitleScene から開始
-                width: SCREEN_WIDTH, // 画面幅
-                height: SCREEN_HEIGHT, // 画面高さ
-                assets: ASSETS, // アセット読み込み
-            });
-
-            // 実行
-            app.run();
-        });
+        // 実行
+        app.run();
+        r;
+      });
     </script>
-</head>
+  </head>
 
-<body>
-
-</body></html>
+  <body></body>
+</html>
